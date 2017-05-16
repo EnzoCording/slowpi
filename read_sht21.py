@@ -74,17 +74,20 @@ class sht21:
 if __name__ == "__main__":
     SHT21 = sht21()
     while True:
+        gpio_file = open("/sys/class/gpoi
         (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-        #if(t0==None or rh0==None):
-		    #    continue
-	      current_time = time.strftime("%d/%m/%Y %H:%M:%S")
+        if(t0==None or rh0==None):
+		   
+		 print("Error: Value is None")
+		 continue
+	current_time = time.strftime("%d/%m/%Y %H:%M:%S")
         print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
 
-   	    myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
+   	myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
 
- 	      fd = open('document.csv','a')
-	      fd.write(myrow)
-   	    fd.close()
-        os.system("scp document.csv enzo@atlaswin10:/home/enzo/Programs/")
+ 	fd = open('document.csv','a')
+	fd.write(myrow)
+   	fd.close()
+#        os.system("scp document.csv enzo@atlaswin10:/home/enzo/Programs/")
  
         time.sleep(5)	
