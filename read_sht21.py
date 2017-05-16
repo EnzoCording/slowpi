@@ -72,22 +72,44 @@ class sht21:
 
 # Taking data
 if __name__ == "__main__":
-    SHT21 = sht21()
-    while True:
-        gpio_file = open("/sys/class/gpoi
-        (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-        if(t0==None or rh0==None):
-		   
-		 print("Error: Value is None")
-		 continue
-	current_time = time.strftime("%d/%m/%Y %H:%M:%S")
-        print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
+	SHT21 = sht21()
+  gpio_number = [17, 22, 27]
+  gpio_index = 0
+  for index, value in enumerate(gpio_number):
+		gpio_file = open("/sys/class/gpio" + str(value) + "/value")
+  	print gpio_file
+    if index == 0:
+	    gpio_file.write("1") 
+		else:
+ 	  	gpio_file.write("0") 
+    gpio_file.close() 
 
-   	myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
+	while True:
+		  
+		(t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
+		if(t0==None or rh0==None):
+			print("Error: Value is None")
+			continue
+		current_time = time.strftime("%d/%m/%Y %H:%M:%S")
+    print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
+		myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
 
- 	fd = open('document.csv','a')
-	fd.write(myrow)
+		fd = open('document.csv','a')
+		fd.write(myrow)
    	fd.close()
-#        os.system("scp document.csv enzo@atlaswin10:/home/enzo/Programs/")
+
+    for index, value in enumerate(gpio_number):
+			gpio_file = open("/sys/class/gpio" + str(value) + "/value")
+			if int(gpio_file) == 1:
+				gpio_file.write("0") 
+    		gpio_file.close() 
+        gpio_index =+ 1
+        if gpio_index == len(gpio_number):
+        	gpio_index = 0
+			  gpio_file = open("/sys/class/gpio" + str(gpio_number[gpio_index]) + "/value")
+				gpio_file.write("1") 
+    		gpio_file.close() 
+				continue  
+
  
-        time.sleep(5)	
+		time.sleep(5)	
