@@ -84,33 +84,43 @@ if __name__ == "__main__":
     gpio_file.close() 
 
   while True:
-		  
-	(t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-	if(t0==None or rh0==None):
-		print("Error: Value is None")
-		#continue
-	current_time = time.strftime("%d/%m/%Y %H:%M:%S")
-    	print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
-	myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
+    print "Measure SHT21, Gpio", gpio_number[gpio_index] 
+    (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
+    if(t0==None or rh0==None):
+        print("Error: Value is None")
+	#continue
+    current_time = time.strftime("%d/%m/%Y %H:%M:%S")
+    print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
+    myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
+    
+    # writing values in csv file
+    fd = open('document.csv','a')
+    fd.write(myrow)
+    fd.close()
 
-	fd = open('document.csv','a')
-	fd.write(myrow)
-   	fd.close()
-        print "csv closed"
+    #print "global index", gpio_index
+    for index, value in enumerate(gpio_number):
+        gpio_file = open("/sys/class/gpio/gpio" + str(value) + "/value", 'r')
+        #print gpio_file.read()[0]
+        if gpio_file.read()[0] == '1':
+            #print "Open gpio", value
+    	    gpio_file.close()
+            gpio_file = open("/sys/class/gpio/gpio" + str(value) + "/value", 'w')
+	    gpio_file.write("0") 
+    	    gpio_file.close()
+            # increase global index
+            gpio_index += 1
+            if gpio_index == len(gpio_number):
+                print "Reached the end of gpio list.."
+                gpio_index = 0
+            # write 
+	    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", 'w')
+	    gpio_file.write("1") 
+    	    gpio_file.close() 
+	    break
+        else:
+    	    gpio_file.close() 
 
-    	for index, value in enumerate(gpio_number):
-		gpio_file = open("/sys/class/gpio/gpio" + str(value) + "/value", 'r+')
-		read_file = gpio_file.read()
-		if int(read_file) == 1:
-			gpio_file.write("0") 
-    			gpio_file.close() 
-        		gpio_index =+ 1
-       		if gpio_index == len(gpio_number):
-        		gpio_index = 0
-			gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", 'r')
-			gpio_file.write("1") 
-    			gpio_file.close() 
-			break  
 
- 
-	time.sleep(5)	
+    print "sleep...\n"
+    time.sleep(3)	
