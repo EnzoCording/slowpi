@@ -75,6 +75,9 @@ if __name__ == "__main__":
   SHT21 = sht21()
   gpio_number = [17, 22, 27]
   gpio_index = 0
+  sensor_number = ["sensor_1", "sensor_3", "sensor_2"]
+  sensor_index = 0
+
   for index, value in enumerate(gpio_number):
     gpio_file = open("/sys/class/gpio/gpio" + str(value) + "/value", 'w')
     if index == 0:
@@ -86,17 +89,38 @@ if __name__ == "__main__":
   while True:
     print "Measure SHT21, Gpio", gpio_number[gpio_index] 
     (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-    if(t0==None or rh0==None):
+    if(t0==None or rh0==None or t0 > 50 or rh0 > 100):
         print("Error: Value is None")
 	#continue
+	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
+	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
+	gpio_file.write("0")
+	gpio_file.close()
+	gpio_index += 1	
+	if gpio_index == len(gpio_number):
+	  gpio_index = 0
+	sensor_index += 1
+	if sensor_index == len(sensor_number):
+	  sensor_index = 0
+	print "sleeping..." + "\n"
+	time.sleep(3)
+	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
+	gpio_file.write("1")
+	gpio_file.close()
+        continue	
+		
     current_time = time.strftime("%d/%m/%Y %H:%M:%S")
     print (current_time, "Temperature: ", t0 ,"   Humidity: ", rh0)
     myrow = str(current_time) + ',' + str(t0) + ',' + str(rh0) + '\n'
     
     # writing values in csv file
-    fd = open('document.csv','a')
+    print ("Saving csv for ", str(sensor_number[sensor_index]), "  " , str(gpio_number[gpio_index]))
+    fd = open(str(sensor_number[sensor_index]) + "," + str(gpio_number[gpio_index]),'a')
     fd.write(myrow)
     fd.close()
+    sensor_index += 1
+    if sensor_index == len(gpio_number):
+	sensor_index = 0
 
     #print "global index", gpio_index
     for index, value in enumerate(gpio_number):
