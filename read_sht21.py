@@ -115,7 +115,7 @@ if __name__ == "__main__":
     
     # writing values in csv file
     print ("Saving csv for ", str(sensor_number[sensor_index]), "  " , str(gpio_number[gpio_index]))
-    fd = open(str(sensor_number[sensor_index]) + "," + str(gpio_number[gpio_index]),'a')
+    fd = open(str(sensor_number[sensor_index]) + "," + str(gpio_number[gpio_index]) + ".csv",'a')
     fd.write(myrow)
     fd.close()
     sensor_index += 1
