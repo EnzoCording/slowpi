@@ -80,22 +80,23 @@ if __name__ == "__main__":
   SHT21 = sht21()
   gpio_number = [17, 27, 22]
   gpio_index = 0
-  sensor_number = ["sensor_1", "sensor_2", "sensor_3"]
-  sensor_index = 0
-  t0=0
-  t1=0
-  t2=0
-  rh0=0
-  rh1=0
-  rh2=0
+  #sensor_number = ["sensor_1", "sensor_2", "sensor_3"]
+  #sensor_index = 0
+  t0 = 0.0
+  t1 = 0.0
+  t2 = 0.0
+  rh0 = 0.0
+  rh1 = 0.0
+  rh2 = 0.0
 
-
+  # initialising gpio in unix file system
   for index, value in enumerate(gpio_number):
     try:
 	gpio_export = open("/sys/class/gpio/export", 'w')
-   	gpio_export.write("gpio" + str(value))
-   	#gpio_export.close()
+   	gpio_export.write(str(value))
+   	gpio_export.close()
     except IOError:
+        print "IOError in export."
 	continue
   
   for index, value in enumerate(gpio_number):
@@ -104,227 +105,61 @@ if __name__ == "__main__":
     	gpio_direction.write("out")
     	#gpio_direction.close()
     except IOError:
+        print "IOError in direction."
 	continue
 
-
+  # set index to first gpio pin
   for index, value in enumerate(gpio_number):
     gpio_file = open("/sys/class/gpio/gpio" + str(value) + "/value", 'w')
     if index == 0:
       gpio_file.write("1") 
     else:
       gpio_file.write("0") 
+    time.sleep(1)
     gpio_file.close() 
 
+  ##########################################
+  # main loop
   while True:
-    print "Measure SHT21, Gpio", gpio_number[gpio_index] 
-    if(gpio_index == 0):
-    	(t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-    if(gpio_index == 1):
-	(t1, rh1) = SHT21.measure(None,3,2)
-    if(gpio_index == 2):
-	(t2, rh2) = SHT21.measure(None,3,2)
-
-    if(t0==None or rh0==None or t0>50 or rh0>100):
-        print("Error: Value is None")
-	t0 = 0
-	rh0 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
     
-    if(t1==None or rh1==None or t1>50 or rh1>100):
-	print("Error: Value is None")
-	t1 = 0
-	rh1 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-	
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("1")
-	gpio_file.close()
-	
-    if(t2==None or rh2==None or t2>50 or rh2>100):
-	print("Error: Value is None")
-	t2 = 0
-	rh2 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-	
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("1")
-	gpio_file.close()
+    for measure_index in gpio_number:
+        # MEASURE
+        print "Measure SHT21, Gpio", gpio_number[gpio_index] 
+        if(gpio_index == 0):
+            (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
+        if(gpio_index == 1):
+            (t1, rh1) = SHT21.measure(None,3,2)
+        if(gpio_index == 2):
+            (t2, rh2) = SHT21.measure(None,3,2)
+
+        if(t0==None or rh0==None or t0>50 or rh0>100):
+            print("Error: Value is None")
+            t0 = 0.0
+            rh0 = 0.0
+        if(t1==None or rh1==None or t1>50 or rh1>100):
+            print("Error: Value is None")
+            t1 = 0.0
+            rh1 = 0.0
+        if(t2==None or rh2==None or t2>50 or rh2>100):
+            print("Error: Value is None")
+            t2 = 0.0
+            rh2 = 0.0
+
+        gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", 'w')
+        gpio_file.write("0")
+        gpio_file.close()
+        gpio_index += 1
+        if gpio_index == len(gpio_number):
+              gpio_index = 0
+        gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
+        gpio_file.write("1")
+        gpio_file.close()
     
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", 'w')
-    gpio_file.write("0")
-    gpio_file.close()
-    gpio_index += 1
-    if gpio_index == len(gpio_number):
-	  gpio_index = 0
-
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-    gpio_file.write("1")
-    gpio_file.close()
     
-    print "Measure SHT21, Gpio", gpio_number[gpio_index]
-    if(gpio_index == 0):
-        (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-    if(gpio_index == 1):
-        (t1, rh1) = SHT21.measure(None,3,2)
-    if(gpio_index == 2):
-        (t2, rh2) = SHT21.measure(None,3,2)
-
-    if(t0==None or rh0==None or t0>50 or rh0>100):
-        print("Error: Value is None")
-	t0 = 0
-	rh0 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
+    #t2 = 0
+    #rh2 = 0
     
-    if(t1==None or rh1==None or t1>50 or rh1>100):
-	print("Error: Value is None")
-	t1 = 0
-	rh1 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-	
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("1")
-	gpio_file.close()
-	
-    if(t2==None or rh2==None or t2>50 or rh2>100):
-	print("Error: Value is None")
-	t2 = 0
-	rh2 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-    gpio_file.write("0")
-    gpio_file.close()
-    gpio_index += 1	
-    if gpio_index == len(gpio_number):
-	gpio_index = 0
-
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-    gpio_file.write("1")
-    gpio_file.close()
-
-    print "Measure SHT21, Gpio", gpio_number[gpio_index]
-    if(gpio_index == 0):
-        (t0, rh0) = SHT21.measure(None,3,2)  # Use GPIOs SCL=3, SDA=2
-    if(gpio_index == 1):
-        (t1, rh1) = SHT21.measure(None,3,2)
-    if(gpio_index == 2):
-        (t2, rh2) = SHT21.measure(None,3,2)
-
-    if(t0==None or rh0==None or t0>50 or rh0>100):
-        print("Error: Value is None")
-	t0 = 0
-	rh0 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-    
-    if(t1==None or rh1==None or t1>50 or rh1>100):
-	print("Error: Value is None")
-	t1 = 0
-	rh1 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-	
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("1")
-	gpio_file.close()
-	
-    if(t2==None or rh2==None or t2>50 or rh2>100):
-	print("Error: Value is None")
-	t2 = 0
-	rh2 = 0
-	print "Skipping Gpio Pin: " + str(gpio_number[gpio_index]) + "\n"
-	gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-	gpio_file.write("0")
-	gpio_file.close()
-	gpio_index += 1	
-	if gpio_index == len(gpio_number):
-	  gpio_index = 0
-	sensor_index += 1
-	if sensor_index == len(sensor_number):
-	  sensor_index = 0
-  
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-    gpio_file.write("0")
-    gpio_file.close()
-    gpio_index += 1	
-    if gpio_index == len(gpio_number):
-	  gpio_index = 0
-
-    gpio_file = open("/sys/class/gpio/gpio" + str(gpio_number[gpio_index]) + "/value", "w")
-    gpio_file.write("1")
-    gpio_file.close()
-    t2 = 0
-    rh2 = 0
+    # SAVE
     current_time = time.strftime("%d/%m/%Y %H:%M:%S")
     save_time = time.strftime("%d_%m")
     print (current_time, "Temperature: ", t0, t1, t2, "  Humidity: ", rh0, rh1, rh2)
